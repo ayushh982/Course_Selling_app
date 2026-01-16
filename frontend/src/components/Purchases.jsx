@@ -30,7 +30,7 @@ export default function Purchases() {
 
   // Fetch courses
   useEffect(() => {
-      const token = JSON.parse(localStorage.getItem("user"));
+      const token = localStorage.getItem("user");
 
       const fetchPurchase = async () => {
     if (!token) {

@@ -67,9 +67,16 @@ export const login = async (req, res) => {
       { expiresIn: "1d" }
     );
 
+    // Set JWT cookie for cross-origin
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
     res.status(200).json({
       message: "User logged in successfully",
-      token,
     });
 
   } catch (error) {

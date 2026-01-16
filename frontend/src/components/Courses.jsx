@@ -44,6 +44,8 @@ function Courses() {
         setCourses(response.data.courses);
         setLoading(false);
       } catch (error) {
+        setLoading(false);
+        toast.error("Error fetching courses");
         console.log("error in fetchCourses ", error);
       }
     };
@@ -59,7 +61,7 @@ function Courses() {
         const response = await axios.get(
           `${BACKEND_URL}/user/purchases`,
           {
-            headers: { Authorization: `Bearer ${JSON.parse(token)}` },
+            headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           }
         );
@@ -191,7 +193,7 @@ const handleLogout = async () => {
                   className="border border-gray-200 rounded-lg p-4 shadow-sm"
                 >
                   <img
-                    src={course.image.url}
+                    src={typeof course.image === 'string' ? `${BACKEND_URL}/uploads/${course.image}` : course.image?.url}
                     alt={course.title}
                     className="rounded mb-4"
                   />

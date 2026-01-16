@@ -15,7 +15,7 @@ import UpdateCourse from "./admin/UpdateCourse";
 import OurCourses from "./admin/OurCourses";
 
 function App() {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = localStorage.getItem("user");
   const admin = JSON.parse(localStorage.getItem("admin"));
 
   return (

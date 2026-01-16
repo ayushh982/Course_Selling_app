@@ -27,12 +27,15 @@ function Home() {
 
   const handleLogout = async () => {
     try {
-      const response= axios.get(`${BACKEND_URL}/course/courses`, {}, { withCredentials: true });
-      toast.success((await response).data.message);
+      const response = await axios.get(
+        `${BACKEND_URL}/user/logout`,
+        { withCredentials: true }
+      );
+      toast.success(response.data.message);
       setIsLoggedIn(false);
-    }catch (error) {
+    } catch (error) {
       console.log("Error during logout:", error);
-      toast.error(error.response.data.errors||"Logout failed. Please try again.");
+      toast.error(error.response?.data?.error || "Logout failed. Please try again.");
     }
   };
 
@@ -40,7 +43,7 @@ function Home() {
     const fetchCourses = async () => {
       try {
         const response = await axios.get(
-          `${BACKEND_URL}/user/logout`,
+          `${BACKEND_URL}/course/courses`,
           { withCredentials: true }
         );
         setCourses(response.data.courses);
@@ -158,9 +161,11 @@ function Home() {
                       {course.title}
                     </h2>
 
-                    <Link to={`/buy/${course._id}`} className="mt-8 bg-orange-500 text-white py-2 px-4 rounded-full hover:bg-blue-500 duration-300">
+                    <div className="flex justify-center mt-8">
+                      <Link to={`/buy/${course._id}`} className="bg-orange-500 text-white py-2 px-4 rounded-full hover:bg-blue-500 duration-300 text-center">
                         Enroll Now
                       </Link>
+                    </div>
                   </div>
                 </div>
               );

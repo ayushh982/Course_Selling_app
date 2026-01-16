@@ -29,14 +29,8 @@ const handleSubmit = async (e) => {
       }
     );
 
-    // ✅ STORE TOKEN + USER PROPERLY
-    localStorage.setItem(
-      "user",
-      JSON.stringify({
-        token: response.data.token,
-        user: response.data.user,
-      })
-    );
+    // ✅ STORE ONLY JWT TOKEN STRING
+    localStorage.setItem("user", response.data.token);
 
     toast.success(response.data.message);
     navigate("/courses");

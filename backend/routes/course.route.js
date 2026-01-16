@@ -1,3 +1,6 @@
+import { confirmPurchase } from "../controllers/course.controller.js";
+// Confirm purchase after payment
+router.post("/confirm/:courseId", userMiddleware, confirmPurchase);
 import express from "express";
 import {
   buyCourses,

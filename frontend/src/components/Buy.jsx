@@ -15,8 +15,8 @@ export default function Buy() {
   const [clientSecret, setClientSecret] = useState("");
   const [error, setError] = useState("");
 
-  // ✅ token is stored directly
-  const token = JSON.parse(localStorage.getItem("user"));
+  // ✅ token is stored as a string
+  const token = localStorage.getItem("user");
   console.log("[Buy.jsx] Token from localStorage:", token);
   // Get user info from localStorage if available
   let userInfo = null;
@@ -32,11 +32,15 @@ export default function Buy() {
   useEffect(() => {
     const fetchBuyCourseData = async () => {
       try {
+        // Debug: print token and header
+        console.log("[Buy.jsx] JWT token from localStorage:", token);
+        const authHeader = `Bearer ${token}`;
+        console.log("[Buy.jsx] Authorization header:", authHeader);
         const response = await axios.post(`${BACKEND_URL}/course/buy/${courseId}`,
           {},
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: authHeader,
             },
             withCredentials: true, // Include cookies if needed
           }
@@ -46,12 +50,20 @@ export default function Buy() {
         setLoading(false);
       } catch (error) {
         setLoading(false);
+        let msg = "Unknown error";
         if (error?.response?.status === 400) {
-          setError("you have already purchased this course");
+          msg = "You have already purchased this course";
+          setError(msg);
           navigate("/purchases");
-        } else {
-          setError(error?.response?.data?.errors);
+        } else if (error?.response?.data?.errors) {
+          msg = error.response.data.errors;
+          setError(msg);
+        } else if (error?.message) {
+          msg = error.message;
+          setError(msg);
         }
+        toast.error("Error loading course: " + msg);
+        console.log("[Buy.jsx] Error fetching course:", error);
       }
     };
     fetchBuyCourseData();
@@ -95,35 +107,34 @@ export default function Buy() {
     );
     if (confirmError) {
       setCardError(confirmError.message);
+      toast.error(`Stripe error: ${confirmError.message}`);
+      console.error("[Buy.jsx] Stripe confirmCardPayment error:", confirmError);
     } else if (paymentIntent.status === "succeeded") {
       console.log("Payment succeeded: ", paymentIntent);
-      setCardError("your payment id: ", paymentIntent.id);
-      const paymentInfo = {
-        email: userInfo?.email || "",
-        userId: userInfo?._id,
-        courseId,
-        paymentId: paymentIntent.id,
-        amount: paymentIntent.amount,
-        status: paymentIntent.status,
-      };
-
-      console.log("Payment info: ", paymentInfo);
-      await axios
-        .post(`${BACKEND_URL}/order`, paymentInfo, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        })
-        .then((response) => {
-          console.log(response.data);
-        })
-        .catch((error) => {
-          console.log(error);
-          toast.error("Error in making payment");
-        });
-      toast.success("Payment Successful");
-      navigate("/purchases");
+      setCardError("");
+      try {
+        // Confirm purchase with backend
+        await axios.post(
+          `${BACKEND_URL}/course/confirm/${courseId}`,
+          { paymentIntentId: paymentIntent.id },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            withCredentials: true,
+          }
+        );
+        toast.success("Payment Successful");
+        navigate("/purchases");
+      } catch (error) {
+        console.log(error);
+        toast.error("Error in confirming purchase");
+      }
+    } else {
+      // PaymentIntent not succeeded, show error
+      setCardError("Payment was not successful. Please try again.");
+      toast.error("Payment was not successful. Please try again.");
+      console.error("[Buy.jsx] PaymentIntent status:", paymentIntent.status, paymentIntent);
     }
     setLoading(false);
   };
@@ -140,6 +151,19 @@ export default function Buy() {
             className="inline-block bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
           >
             Go to Purchases
+          </Link>
+        </div>
+      </div>
+    ) : !course || !course.title ? (
+      // 🔴 No course data fallback
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="bg-yellow-100 text-yellow-700 px-6 py-4 rounded-lg text-center">
+          <p className="text-lg font-semibold mb-3">Course details not available. Please try again later.</p>
+          <Link
+            to="/courses"
+            className="inline-block bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
+          >
+            Go to Courses
           </Link>
         </div>
       </div>
