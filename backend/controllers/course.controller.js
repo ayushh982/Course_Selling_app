@@ -189,7 +189,13 @@ export const confirmPurchase = async (req, res) => {
       return res.status(400).json({ errors: "Course already purchased" });
     }
     // Create purchase
-    
+    const newPurchase = new Purchase({
+      userId,
+      courseId,
+      paymentId: paymentIntentId,
+      purchasedAt: new Date(),
+    });
+    await newPurchase.save();
     res.status(201).json({ message: "Course purchased successfully" });
   } catch (error) {
     res.status(500).json({ errors: "Error in confirming purchase" });
